@@ -36,6 +36,24 @@ class CTFBase(nn.Module,metaclass=ABCMeta):
         ...
 
 
+class CTFIdentity(CTFBase):
+    def __init__(self, resolution=.8, num_particles=500):
+        """
+        Initialization of a CTF that does nothing.
+
+        Parameters
+        ----------
+        resolution: float
+        num_particles: int
+        """
+        super().__init__(resolution, num_particles, False)
+
+    def forward(self, x_fourier, idcs=0, ctf_params={}, mode='none', frequency_marcher=None):
+        if x_fourier.dim() == 3:
+            x_fourier = x_fourier[None,...] # adds a batch dimension so as to be compatible with our other CTFs
+        return x_fourier
+
+
 class CTFRelion(CTFBase):
     def __init__(self, size=257, resolution=0.8,
                  kV=300.0, valueNyquist=.001,

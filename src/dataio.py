@@ -7,8 +7,14 @@ import torchvision.transforms.functional as tvf
 import numpy as np
 import os
 from .geom_utils import euler_angles2matrix
-from .ctf_utils import primal_to_fourier_2D
+from .ctf_utils import primal_to_fourier_2D, primal_to_fourier_3D, fourier_to_primal_2D
 from .mask_utils import Mask
+from .volume_utils import shift_coords
+from pytorch3d.transforms import random_rotations
+
+
+def get_power(vol):
+    return(np.sum(np.abs(vol)))
 
 
 class StarfileDataLoader(Dataset):
@@ -139,5 +145,164 @@ class StarfileDataLoader(Dataset):
                    'angleAstigmatism': angleAstigmatism,
                    'idx': torch.tensor(idx, dtype=torch.long),
                    'fproj': fproj}
+
+        return in_dict
+
+
+class DensityMapProjectionSimulator(Dataset):
+    def __init__(self, mrc_filepath, projection_sz, num_projs=None,
+                 noise_generator=None, ctf_generator=None, power_signal=1,
+                 resolution=3.2, shift_generator=None, fproj_mode='dft'):
+        """
+        Initialization of a dataloader from a mrc, simulating a cryo-EM experiment.
+
+        Parameters
+        ----------
+        config: namespace
+        """
+        self.projection_sz = projection_sz
+        self.num_projs = num_projs
+        self.noise_generator = noise_generator
+        self.ctf_generator = ctf_generator
+        self.shift_generator = shift_generator
+        self.fproj_mode = fproj_mode
+
+        ''' Read mrc file '''
+        self.mrc_filepath = mrc_filepath
+        with mrcfile.open(mrc_filepath) as mrc:
+            mrc_data = np.copy(mrc.data)
+            power_init = get_power(mrc_data)
+            mrc_data = 2e4 * power_signal * mrc_data * mrc_data.shape[0] / (power_init * self.projection_sz[0])
+            voxel_size = float(mrc.voxel_size.x)
+            if voxel_size < 1e-3:  # voxel_size = 0.
+                voxel_size = resolution
+                # voxel_size = 0.617
+        self.mrc = mrc_data
+        self.vol = torch.from_numpy(self.mrc).float()
+        self.fvol_cpx = primal_to_fourier_3D(self.vol)  # S, S, S
+        self.fvol = torch.cat([torch.real(self.fvol_cpx).unsqueeze(0),
+                               torch.imag(self.fvol_cpx).unsqueeze(0)])  # 2, S, S, S
+
+        x_lim = resolution * self.projection_sz[0] / (voxel_size * mrc_data.shape[0])
+
+        ''' Planar coordinates '''
+        lincoords = torch.linspace(-x_lim, x_lim, self.projection_sz[0])
+        [X, Y] = torch.meshgrid([lincoords, lincoords])
+        coords = torch.stack([Y, X, torch.zeros_like(X)], dim=-1)
+        coords = shift_coords(coords, 1., 1., 0, self.projection_sz[0], self.projection_sz[0], 1)  # place DC component at (0, 0, 0)
+        self.plane_coords = coords.reshape(-1, 3)
+
+        ''' Volumetric coordinates '''
+        self.vol_sidelen = self.projection_sz[0]
+        self.vol_shape = [self.vol_sidelen] * 3
+        lincoords = torch.linspace(-x_lim, x_lim, self.vol_sidelen)  # assume square volume
+        [X, Y, Z] = torch.meshgrid([lincoords, lincoords, lincoords])
+        self.vol_coords = torch.stack([Y, X, Z], dim=-1).reshape(-1, 3)  # S^3, 3
+
+        ''' Rotations '''
+        self.rotmat = random_rotations(self.num_projs)
+
+        # Keep precomputed projections to avoid recomputing them
+        # and to get the same random realizations (for e.g. for noise)
+        self.precomputed_projs = [None]*self.num_projs
+        self.precomputed_fprojs = [None] * self.num_projs
+
+    def __len__(self):
+        return self.num_projs
+
+    def __getitem__(self, idx):
+        rotmat = self.rotmat[idx, :]
+
+        # If the projection has been precomputed already, use it
+        if self.precomputed_projs[idx] is not None:
+            proj = self.precomputed_projs[idx]
+            fproj = self.precomputed_fprojs[idx]
+        else:  # otherwise precompute it
+            if self.fproj_mode == 'dft':
+                rot_vol_coords = torch.matmul(self.vol_coords, rotmat)  # S^3, 3
+
+                ''' Generate proj '''
+                rot_vol = torch.nn.functional.grid_sample(self.vol[None, None, :, :, :],  # B, 1, S, S, S
+                                                          rot_vol_coords[None, None, None, :, :],
+                                                          align_corners=True)
+                proj = torch.sum(rot_vol.reshape(self.vol_shape),  dim=-1)
+                proj = proj[None, :, :]  # add a dummy channel (for consistency w/ img fmt) --> C, H, W
+
+                ''' Generate fproj (fourier) '''
+                fproj = primal_to_fourier_2D(proj)
+
+            else:
+                rot_plane_coords = torch.matmul(self.plane_coords, rotmat)  # S^2, 3
+                rot_plane_coords = shift_coords(rot_plane_coords, 1., 1., 1., self.projection_sz[0],
+                                                self.projection_sz[0],
+                                                self.projection_sz[0],
+                                                flip=True)
+
+                ''' Generate fproj (fourier) '''
+                fplane = torch.nn.functional.grid_sample(self.fvol[None, :, :, :, :],  # B, 2, S, S, S
+                                                          rot_plane_coords[None, None, None, :, :],
+                                                          align_corners=True)
+                fplane = fplane.reshape(2, self.projection_sz[0], self.projection_sz[0]).permute(1, 2, 0)
+                fplane = fplane.contiguous()
+                fproj = torch.view_as_complex(fplane)[None, :, :]
+
+                # ''' Generate proj '''
+                # proj = torch.real(fourier_to_primal_2D(fproj))
+
+            ''' CTF model (fourier) '''
+            if self.ctf_generator is not None:
+                fproj = self.ctf_generator(fproj, [idx])[0, ...]
+                if hasattr(self.ctf_generator, 'variable_ctf'):
+                    if self.ctf_generator.variable_ctf:
+                        defocusU = self.ctf_generator.defocusU[idx]
+                        defocusV = self.ctf_generator.defocusV[idx]
+                        angleAstigmatism = self.ctf_generator.angleAstigmatism[idx]
+                    else:
+                        defocusU = self.ctf_generator.defocusU.reshape(1, 1)
+                        defocusV = self.ctf_generator.defocusV.reshape(1, 1)
+                        angleAstigmatism = self.ctf_generator.angleAstigmatism.reshape(1, 1)
+                else:
+                    defocusU = 0
+                    defocusV = 0
+                    angleAstigmatism = 0
+
+            ''' Shift '''
+            if self.shift_generator is not None:
+                fproj = self.shift_generator(fproj, [idx])[0, ...]
+                if hasattr(self.shift_generator, 'shifts'):
+                    shiftX = self.shift_generator.shifts[idx, 0]
+                    shiftY = self.shift_generator.shifts[idx, 1]
+                else:
+                    shiftX = 0.
+                    shiftY = 0.
+
+            ''' Update primal proj '''
+            proj = fourier_to_primal_2D(fproj).real
+
+            ''' Noise model (primal) '''
+            if self.noise_generator is not None:
+                proj = self.noise_generator(proj)
+
+            ''' sync fproj with proj '''
+            fproj = primal_to_fourier_2D(proj)
+
+            ''' Store precomputed projs / fproj '''
+            self.precomputed_projs[idx] = proj
+            self.precomputed_fprojs[idx] = fproj
+
+        in_dict = {'proj': proj,
+                   'rotmat': rotmat,
+                   'idx': torch.tensor(idx, dtype=torch.long),
+                   'fproj': fproj}
+        in_dict['proj_input'] = proj
+
+        if self.ctf_generator is not None:
+            in_dict['defocusU'] = defocusU
+            in_dict['defocusV'] = defocusV
+            in_dict['angleAstigmatism'] = angleAstigmatism
+
+        if self.shift_generator is not None:
+            in_dict['shiftX'] = shiftX
+            in_dict['shiftY'] = shiftY
 
         return in_dict

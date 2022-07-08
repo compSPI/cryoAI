@@ -12,7 +12,7 @@ class VolumeBase(nn.Module, metaclass=ABCMeta):
         ...
 
 
-def shift_coords(coords, x_range, y_range, z_range, Nx, Ny, Nz):
+def shift_coords(coords, x_range, y_range, z_range, Nx, Ny, Nz, flip=False):
     """
     Shifts the coordinates and puts the DC component at (0, 0, 0).
 
@@ -28,21 +28,26 @@ def shift_coords(coords, x_range, y_range, z_range, Nx, Ny, Nz):
     Nx: int
     Ny: int
     Nz: int
+    flip: bool
 
     Returns
     -------
     coords: torch.tensor (..., 3)
     """
+    alpha = -1.
+    if flip:  # "unshift" the coordinates.
+        alpha = 1.
+
     if Nx % 2 == 0:
-        x_shift = coords[..., 0] - x_range / (Nx - 1)
+        x_shift = coords[..., 0] + alpha * x_range / (Nx - 1)
     else:
         x_shift = coords[..., 0]
     if Ny % 2 == 0:
-        y_shift = coords[..., 1] - y_range / (Ny - 1)
+        y_shift = coords[..., 1] + alpha * y_range / (Ny - 1)
     else:
         y_shift = coords[..., 1]
     if Nz % 2 == 0:
-        z_shift = coords[..., 2] - z_range / (Nz - 1)
+        z_shift = coords[..., 2] + alpha * z_range / (Nz - 1)
     else:
         z_shift = coords[..., 2]
     coords = torch.cat((x_shift.unsqueeze(-1),

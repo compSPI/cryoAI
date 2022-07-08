@@ -9,6 +9,7 @@ import configargparse
 from ..utils import cond_mkdir
 from .train import experiment as train
 from .evaluate_encoder import experiment as evaluate_encoder
+from .generate_synthetic import experiment as generate_synthetic
 
 
 def init_config(parser):
@@ -18,9 +19,9 @@ def init_config(parser):
     parser.add_argument('--job_id', type=str, help='Job id in slurm.')
     parser.add_argument('--train_num_workers', type=int, default=8,
                         help='The number of workers to use for the dataloader. (>0 not implemented)')
-    parser.add_argument('--train_batch_sz', type=int, default=256,
+    parser.add_argument('--train_batch_sz', type=int, default=64,
                         help='The number of projections in a batch for training.')
-    parser.add_argument('--train_chunk_sz', type=int, default=256,
+    parser.add_argument('--train_chunk_sz', type=int, default=32,
                         help='The size of a chunk of views that can fit on the GPU,'
                              'chunk_sz < batch_size. The batch will be automatically divided'
                              'in chunks of chunk_sz and gradients are accumulated over the chunk'
@@ -35,7 +36,7 @@ def init_config(parser):
     parser.add_argument('--optimizer', type=str, choices=['Adam', 'SGD'], default='Adam',
                         help='Type of optimizer.')
     # Summary / Checkpoints
-    parser.add_argument('--steps_til_light_summary', type=int, default=500,
+    parser.add_argument('--steps_til_light_summary', type=int, default=100,
                         help='The number of steps (in #batches) between light summaries.')
     parser.add_argument('--epochs_til_heavy_summary', type=int, default=1,
                         help='The number of epochs between heavy summaries.')
@@ -48,15 +49,15 @@ def init_config(parser):
     parser.add_argument('--fast_mode', type=int, default=0,
                         help="Deactivates summaries to decrease computation time.")
     # Data Loading
-    parser.add_argument('--side_len', type=int, default=64,
+    parser.add_argument('--side_len', type=int, default=128,
                         help='The shape of the density map as determined by one side of the volume.')
     parser.add_argument('--side_len_input_output_ratio', type=int, default=1,
                         help='Ratio between input / output side lengths.')
-    parser.add_argument('--num_particles', type=int, default=10000,
+    parser.add_argument('--num_particles', type=int, default=50000,
                         help='Total number of particle images to use in reconstruction.')
-    parser.add_argument('--path_to_starfile', type=str,
+    parser.add_argument('--path_to_starfile', type=str, default='none',
                         help='The root directory for a RELION run.')
-    parser.add_argument('--starfile', type=str,
+    parser.add_argument('--starfile', type=str, default='none',
                         help='The filepath to RELION\'s star file.')
     parser.add_argument('--invert_hand', type=bool, default=0,
                         help='Invert handedness when reading relion data.')
@@ -100,9 +101,9 @@ def init_config(parser):
     parser.add_argument('--force_symmetry', type=int, default=0,
                         help='Forces the FourierNet to give an hermitian function.')
     # CTF
-    parser.add_argument('--use_ctf', type=str, choices=['gt'], default='gt',
+    parser.add_argument('--use_ctf', type=str, choices=['gt', 'none'], default='gt',
                         help="gt: use ctf from gt. static: use the same ctf for each particle. "
-                             "none: identity ctf.")
+                             "none: identity ctf (for simulation only).")
     parser.add_argument('--ctf_size', type=int, default=128,
                         help='The size of the CTF filter used in reconstructions.')
     parser.add_argument('--ctf_valueNyquist', type=float, default=0.001,
@@ -153,6 +154,35 @@ def init_config(parser):
     # Output Starfile
     parser.add_argument('--model_output_starfile', type=str, default='encoder',
                         help="Model used to predict orientations and write starfile.")
+    # Simulation
+    parser.add_argument('--simul_mrc', type=str, default='none',
+                        help='The filepath to the MRC density map to use for simulation,')
+    parser.add_argument('--use_noise', type=int, default=1,
+                        help='Add noise?')
+    parser.add_argument('--snr', type=float, default=0.1,
+                        help='Signal-noise ratio.')
+    parser.add_argument('--power_signal', type=float, default=0.1,
+                        help='Power of simulated signal (sum of squares).')
+    parser.add_argument('--sim_ctf_defocus_u', type=float, default=2.0,
+                        help='Defocus (U direction) of the CTF used in the simulations.')
+    parser.add_argument('--sim_ctf_defocus_v', type=float, default=2.0,
+                        help='Defocus (V direction) of the CTF used in the simulations.')
+    parser.add_argument('--sim_ctf_defocus_stdev', type=float, default=0.2,
+                        help='Standard deviation of CTF defocus (U direction) distribution used in simulation.')
+    parser.add_argument('--sim_ctf_angle_astigmatism', type=float, default=0.0,
+                        help='Angle of astigmatism of the CTF used in the simulations (in radians).')
+    parser.add_argument('--sim_ctf_spherical_abberations', type=float, default=2.7,
+                        help='Spherical abberations of the CTF used in the simulations.')
+    parser.add_argument('--simul_num_projs', type=int, default=10000,
+                        help='The number of projections to simulate in the volume.')
+    parser.add_argument('--variable_ctf', type=int, default=1,
+                        help='Use variable defocii.')
+    parser.add_argument('--ctf_sim_precompute', type=int, default=1,
+                        help='Pre-compute the ctf for simulation?')
+    parser.add_argument('--std_shift', type=float, default=3.0,
+                        help='Standard deviation of the shift in A.')
+    parser.add_argument('--sim_starfile_dir', type=str, default='simulated_starfiles/',
+                        help='Output directory for simulated starfiles.')
 
 
 def main():
@@ -161,9 +191,10 @@ def main():
                         help='Path to config file.')
 
     # We must give an experiment name
-    parser.add_argument('--experiment_type', type=str, default='exp_simul_proj',
+    parser.add_argument('--experiment_type', type=str, required=True,
                         choices=['train',
-                                 'evaluate_encoder'],
+                                 'evaluate_encoder',
+                                 'generate_synthetic'],
                         help='The experiment to run.')
     parser.add_argument('--experiment_name', type=str, default=None, required=True,
                         help='An identifier for the train run.')
@@ -182,6 +213,12 @@ def main():
         parser.error('Error: --experiment_name is required.')
     if config.job_id is not None:
         config.experiment_name = config.experiment_name + '_' + config.job_id
+
+    if config.experiment_type == 'generate_synthetic':
+        assert config.simul_mrc != 'none', "You must specify a mrc file to generate a dataset."
+    elif config.experiment_type == 'train':
+        assert config.path_to_starfile != 'none', "You must specify a path to the starfile."
+        assert config.starfile != 'none', "You must specify the name of the starfile."
 
     # Assert that the config options are self-consistent
     if config.warm_start_volume or config.warm_start_full:
@@ -219,6 +256,10 @@ def main():
         train(config)
     elif config.experiment_type == 'evaluate_encoder':
         evaluate_encoder(config)
+    elif config.experiment_type == 'generate_synthetic':
+        generate_synthetic(config)
+    else:
+        raise NotImplementedError("Unrecognized experiment type.")
 
     return 0, 'Training successful'
 

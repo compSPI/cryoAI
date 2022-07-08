@@ -140,9 +140,14 @@ class Shift(ShiftBase):
         self.update_mx_my(frequency_marcher)
 
         batch_size = len(idcs)
-        x_fourier_shifted = self.modulate(x_fourier[:batch_size],
-                                          shift_params['shiftX'][:batch_size],
-                                          shift_params['shiftY'][:batch_size])  # B, 1, S, S
+        if shift_params:  # training mode
+            x_fourier_shifted = self.modulate(x_fourier[:batch_size],
+                                              shift_params['shiftX'][:batch_size],
+                                              shift_params['shiftY'][:batch_size])  # B, 1, S, S
+        else:  # simulation mode
+            x_fourier_shifted = self.modulate(x_fourier[:batch_size],
+                                              self.shifts[idcs, 0],
+                                              self.shifts[idcs, 1])
 
         if self.flip_images:
             if mode == 'gt':
@@ -155,6 +160,7 @@ class Shift(ShiftBase):
                                                        shift_params['shiftX'][batch_size:],
                                                        shift_params['shiftY'][batch_size:])
             x_fourier_shifted = torch.cat([x_fourier_shifted, x_fourier_anti_shifted], dim=0)
+
         return x_fourier_shifted
 
     def generate_shifts(self, std_dev, num_particles):

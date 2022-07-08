@@ -14,51 +14,58 @@ pip install -r requirements.txt
 
 >📋  Describe how to set up the environment, e.g. pip/conda/docker commands, download datasets, etc...
 
-## Data
+## Running a Job
 
-...
-
-## Homogeneous Reconstruction
-
-Configuration parameters must be save in a `.ini` file. We provide an example in `configfiles/spliceosome.ini`.
-
-To train a cryoAI model, run this command:
-
+All jobs can be run with 'src/reconstruct/main.py' and a config file (`.ini`):
 ```train
 python -m src.reconstruct.main -c RELATVE_PATH_TO_CONFIG_FILE
 ```
+The config file must at least specify the `experiment_name` and `experiment_type`.
 
-By default, log files containing tensorboard summaries and `.mrc` files (reconstructed volumes) are stored in the `logs` directory.
-
-If using a shared computational resource managed with slurm, the job can be launched with a singularity container (`.sif`) using the command:
-
+If using a shared computational resource managed with slurm, the job can be launched with a singularity container (`.sif`) using the command
 ```slurm
 sbatch run_from_config.sh -c RELATVE_PATH_TO_CONFIG_FILE --sif ABSOLUTE_PATH_TO_CONTAINER
 ```
 
-## Evaluation
+## Generating a Synthetic Dataset
 
-To evaluate my model on ImageNet, run:
-
-```eval
-python eval.py --model-file mymodel.pth --benchmark imagenet
+You must set `experiment_type = generate_synthetic` in the config file and specify the path to your `.mrc` file with the `simul_mrc` argument. An example is provided in `configfiles/mrc2star_80S_128.ini`. Generate a synthetic dataset by running
+```
+python -m src.reconstruct.main -c configfiles/mrc2star_80S_128.ini
 ```
 
->📋  Describe how to evaluate the trained models on benchmarks reported in the paper, give commands that produce the results (section below).
+If using slurm,
+```slurm
+sbatch run_from_config.sh -c configfiles/mrc2star_80S_128.ini --sif ABSOLUTE_PATH_TO_CONTAINER
+```
 
+By default, starfiles are stored in the `simulated_starfiles` directory.
+
+## Loading a Real Dataset
+
+...
+
+## Training
+
+You must set `experiment_type = train` in the config file and specify the path to your `.star` file with the `path_to_starfile` argument and the name of the starfile with the `starfile` argument. An (incomplete) example is provided in `configfiles/spliceosome.ini`. To launch the training, run
+```
+python -m src.reconstruct.main -c configfiles/spliceosome.ini
+```
+
+If using slurm,
+```slurm
+sbatch run_from_config.sh -c configfiles/spliceosome.ini --sif ABSOLUTE_PATH_TO_CONTAINER
+```
+
+By default, log files containing tensorboard summaries and `.mrc` files (reconstructed volumes) are stored in the `logs` directory.
+
+## Evaluation
+
+...
 
 ## Results
 
-Our model achieves the following performance on :
-
-### [Image Classification on ImageNet](https://paperswithcode.com/sota/image-classification-on-imagenet)
-
-| Model name         | Top 1 Accuracy  | Top 5 Accuracy |
-| ------------------ |---------------- | -------------- |
-| My awesome model   |     85%         |      95%       |
-
->📋  Include a table of results from your paper, and link back to the leaderboard for clarity and context. If your main result is a figure, include that figure and link to the command or notebook to reproduce it. 
-
+...
 
 ## Contributing
 
