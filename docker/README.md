@@ -6,13 +6,13 @@ At the moment, we build the cryoAI Docker image in 3 successive steps, building 
 1. **Step1** CUDA base available on [DockerHub](https://hub.docker.com/repository/docker/fpoitevi/cryonettorch-cuda-base)
 2. **Step2** CMAKE base available on [DockerHub](https://hub.docker.com/repository/docker/fpoitevi/cryonettorch-cmake-base)
 3. **Step3** Python environment. We provide the Dockerfile for Step3 [here](https://github.com/compSPI/cryoAI/blob/main/docker/Dockerfile).
-  We build that image using this [GH worflow](https://github.com/compSPI/cryoAI/blob/main/.github/workflows/build.yml) which is triggered whenever the `Dockerfile` or `requirements.txt` are changed after a push to either the `main` or `docker` branch. available on [Dockerhub](https://hub.docker.com/repository/docker/fpoitevi/cryoai)
+  We build that image using this [GH worflow](https://github.com/compSPI/cryoAI/blob/main/.github/workflows/build.yml) which is triggered whenever the `Dockerfile` or `requirements.txt` are changed after a push to either the `main` or `docker` branch. 
   The workflow builds the image and uploads it to [DockerHub](https://hub.docker.com/repository/docker/fpoitevi/cryoai).
 
 This approach provides the benefit of updating the last image only if only the python dependencies change.
 
 Unfortunately we can not provide the Dockerfile for the other steps just yet since they stopped working following an issue similar to the one described here: https://github.com/NVIDIA/nvidia-docker/issues/1631
-As soon as a fix has been found we will make the method available.
+As soon as a fix has been found we will make the method available (we provide them as text below for the interested users).
 
 ## Pulling the image
 
