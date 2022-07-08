@@ -61,13 +61,15 @@ def init_config(parser):
     parser.add_argument('--invert_hand', type=bool, default=0,
                         help='Invert handedness when reading relion data.')
     parser.add_argument('--mask_rad', type=float, default=0.,
-                        help='Mask radius in dataio, 0 for no mask.')
+                        help='Mask radius between 0 and 1, 0 for no mask.')
     parser.add_argument('--idx_min', type=int, default=0,
                         help='Minimal index in the relion dataset.')
     parser.add_argument('--idx_max', type=int, default=-1,
                         help='Maximal index in the relion dataset.')
     parser.add_argument('--scale_images', type=float, default=1.,
                         help='Scaling of images.')
+    parser.add_argument('--no_trans', type=int, default=0,
+                        help='No translation in the dataset.')
     # Encoder
     parser.add_argument('--encoder_batch_norm', type=int, default=1,
                         help='Use batch-norm in the CNN encoder?')

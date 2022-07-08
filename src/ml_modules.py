@@ -569,7 +569,7 @@ class CNNEncoderVGG16(nn.Module):
         if high_res:
             self.feature_channels = [64, 128, 256, 256, 1024, 2048]
         else:
-            self.feature_channels = [64, 128, 256, 1024, 2048]
+            self.feature_channels = [64, 128, 256, 256, 256]
         self.flip_images = flip_images
 
         self.net = []

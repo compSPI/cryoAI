@@ -31,6 +31,7 @@ class StarfileDataLoader(Dataset):
         self.df = starfile.open(os.path.join(self.path_to_starfile, self.starfile))
         self.sidelen_input = sidelen_input
         self.scale_images = config.scale_images
+        self.no_trans = config.no_trans
 
         self.resize_input = resize_input
         if self.resize_input is None:
@@ -119,8 +120,12 @@ class StarfileDataLoader(Dataset):
         ).float()
 
         # Read "GT" shifts
-        shiftX = torch.from_numpy(np.array(particle['rlnOriginXAngst']))
-        shiftY = torch.from_numpy(np.array(particle['rlnOriginYAngst']))
+        if self.no_trans:
+            shiftX = torch.tensor([0.])
+            shiftY = torch.tensor([0.])
+        else:
+            shiftX = torch.from_numpy(np.array(particle['rlnOriginXAngst']))
+            shiftY = torch.from_numpy(np.array(particle['rlnOriginYAngst']))
 
         fproj = primal_to_fourier_2D(proj)
 

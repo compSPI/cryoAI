@@ -3,7 +3,7 @@
 #SBATCH --job-name=cryoai
 #SBATCH --nodes=1
 #SBATCH --gpus=a100:1
-#SBATCH --mem=0
+#SBATCH --mem=131072
 #SBATCH -t 24:00:00
 #SBATCH -n 32
 #SBATCH --output=outputs/%j.log
