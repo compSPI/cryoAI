@@ -11,13 +11,13 @@ on:
   push:
     branches: [ main, docker ]
     paths:
-      - 'docker/env.Dockerfile'
+      - 'docker/Dockerfile'
       - 'requirements.txt'
 
   pull_request:
     branches: [ main ]
     paths:
-      - 'docker/env.Dockerfile'
+      - 'docker/Dockerfile'
       - 'requirements.txt'
 
 jobs:
@@ -51,7 +51,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ./
-          file: ./docker/env.Dockerfile
+          file: ./docker/Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
           tags: ${{ secrets.DOCKER_HUB_USERNAME }}/cryoai:latest
