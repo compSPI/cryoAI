@@ -1,6 +1,6 @@
 # Container management
 
-# Build and upload to DockerHub
+## Build and upload to DockerHub
 
 At the moment, we build the cryoAI Docker image in 3 successive steps, building on top of `pytorch/pytorch:1.9.0-cuda11.1-cudnn8-runtime`:
 1. **Step1** CUDA base available on [DockerHub](https://hub.docker.com/repository/docker/fpoitevi/cryonettorch-cuda-base)
@@ -14,14 +14,14 @@ This approach provides the benefit of updating the last image only if only the p
 Unfortunately we can not provide the Dockerfile for the other steps just yet since they stopped working following an issue similar to the one described here: https://github.com/NVIDIA/nvidia-docker/issues/1631
 As soon as a fix has been found we will make the method available.
 
-# Pulling the image
+## Pulling the image
 
 To pull the latest image from DockerHub and convert it to a Singularity image, do the following:
 ```bash
 singularity pull cryoai_latest.sif docker://fpoitevi/cryoai:latest
 ```
 
-# for Docker experts
+## for Docker experts
 
 For the users interested in helping building the image from scratch, the `Dockerfile` we used successfully to build the CUDA and CMAKE bases linked above are:
 - CUDA base:
