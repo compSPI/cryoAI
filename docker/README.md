@@ -4,8 +4,8 @@
 
 At the moment, we build the cryoAI Docker image in 3 successive steps, building on top of `pytorch/pytorch:1.9.0-cuda11.1-cudnn8-runtime`:
 1. **Step1 - CUDA base.** Available on [DockerHub](https://hub.docker.com/repository/docker/fpoitevi/cryonettorch-cuda-base).
-2**Step2 - CMAKE base.** Available on [DockerHub](https://hub.docker.com/repository/docker/fpoitevi/cryonettorch-cmake-base).
-3**Step3 - Python environment**. We provide the Dockerfile for Step3 [here](https://github.com/compSPI/cryoAI/blob/main/docker/Dockerfile).
+2. **Step2 - CMAKE base.** Available on [DockerHub](https://hub.docker.com/repository/docker/fpoitevi/cryonettorch-cmake-base).
+3. **Step3 - Python environment**. We provide the Dockerfile for Step3 [here](https://github.com/compSPI/cryoAI/blob/main/docker/Dockerfile).
   We build that image using this [GH worflow](https://github.com/compSPI/cryoAI/blob/main/.github/workflows/build.yml) which is triggered whenever the `Dockerfile` or `requirements.txt` are changed after a push to either the `main` or `docker` branch. 
   The workflow builds the image and uploads it to [DockerHub](https://hub.docker.com/repository/docker/fpoitevi/cryoai).
 
