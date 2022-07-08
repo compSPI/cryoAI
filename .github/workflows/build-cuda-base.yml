@@ -1,0 +1,52 @@
+# Builds the foundational base of the container.
+name: "Build CUDA base container"
+
+on:
+  push:
+    branches: [ main, docker ]
+    paths:
+      - 'docker/cuda.Dockerfile'
+
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'docker/cuda.Dockerfile'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Check Out Repo
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push CUDA base
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: ./
+          file: ./docker/cuda.Dockerfile
+          builder: ${{ steps.buildx.outputs.name }}
+          push: true
+          tags: ${{ secrets.DOCKER_HUB_USERNAME }}/cryoai-cuda-base:latest
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
