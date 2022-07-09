@@ -1,1 +1,1 @@
-This is where all the tensorboard summaries and `.mrc` files are saved.
+This is where all the tensorboard summaries, mrc files and full config files are saved.
