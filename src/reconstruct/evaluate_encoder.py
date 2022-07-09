@@ -1,4 +1,4 @@
-"""experiment for pose prediction with a pre-trained cryoAI encoder"""
+"""Experiment for pose prediction with a pre-trained cryoAI encoder."""
 
 from torch.utils.data import DataLoader
 
@@ -26,16 +26,7 @@ def experiment(config):
     orientation_predictor = OrientationPredictor(cryoai)
     orientation_predictor.cuda()
     orientation_predictor.eval()
-
-    if config.model_output_starfile == 'encoder':
-        orientation_predictor = OrientationPredictor(cryoai)
-        orientation_predictor.cuda()
-        orientation_predictor.eval()
-        model = orientation_predictor
-    elif config.model_output_starfile == 'encoder-decoder':
-        cryoai.cuda()
-        cryoai.eval()
-        model = cryoai
+    model = orientation_predictor
 
     root_dir = os.path.join(config.output_starfile_dir, config.experiment_name)
     if not cond_mkdir(root_dir):

@@ -87,6 +87,7 @@ class StarfileDataLoader(Dataset):
         particle = self.df['particles'].iloc[idx + self.idx_min]
         try:
             # Load particle image from mrcs file
+            imgname_raw = particle['rlnImageName']
             imgnamedf = particle['rlnImageName'].split('@')
             mrc_path = os.path.join(self.path_to_starfile, imgnamedf[1])
             pidx = int(imgnamedf[0]) - 1
@@ -144,7 +145,8 @@ class StarfileDataLoader(Dataset):
                    'shiftY': shiftY,
                    'angleAstigmatism': angleAstigmatism,
                    'idx': torch.tensor(idx, dtype=torch.long),
-                   'fproj': fproj}
+                   'fproj': fproj,
+                   'imgname_raw': imgname_raw}
 
         return in_dict
 

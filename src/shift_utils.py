@@ -64,8 +64,8 @@ class Shift(ShiftBase):
         mx, my = torch.meshgrid(ax, ax)
 
         # shape SizexSize
-        self.register_buffer("mx", mx)
-        self.register_buffer("my", my)
+        self.register_buffer("mx", mx.clone())
+        self.register_buffer("my", my.clone())
 
         # Generate shifts
         self.generate_shifts(std_shift, num_particles)

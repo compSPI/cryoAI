@@ -1,4 +1,4 @@
-"""main python file"""
+"""Main python file."""
 
 import sys
 import os
@@ -151,9 +151,6 @@ def init_config(parser):
                         help='Make a warm start on the encoder and the decoder?')
     parser.add_argument('--path_to_warm_start', default=None,
                         help='Path to .pth file for warm start')
-    # Output Starfile
-    parser.add_argument('--model_output_starfile', type=str, default='encoder',
-                        help="Model used to predict orientations and write starfile.")
     # Simulation
     parser.add_argument('--simul_mrc', type=str, default='none',
                         help='The filepath to the MRC density map to use for simulation,')
@@ -200,8 +197,8 @@ def main():
                         help='An identifier for the train run.')
     parser.add_argument('--log_dir', type=str, default='logs/',
                         help='Output directory for logging.')
-    parser.add_argument('--output_starfile_dir', type=str, default='output_starfiles_v1/',
-                        help='Output directory for starfiles after reconstruction.')
+    parser.add_argument('--output_starfile_dir', type=str, default='evaluation_starfiles/',
+                        help='Output directory for starfiles after pose evaluation.')
 
     # This function will initialize a config file if it does not already exist,
     # by filling it with default parameters
@@ -219,6 +216,11 @@ def main():
     elif config.experiment_type == 'train':
         assert config.path_to_starfile != 'none', "You must specify a path to the starfile."
         assert config.starfile != 'none', "You must specify the name of the starfile."
+    if config.experiment_type == 'evaluate_encoder':
+        assert config.path_to_starfile != 'none', "You must specify a path to the starfile."
+        assert config.starfile != 'none', "You must specify the name of the starfile."
+        config.warm_start_full = 1
+        assert config.path_to_warm_start is not None, "path_to_warm_start cannot be None."
 
     # Assert that the config options are self-consistent
     if config.warm_start_volume or config.warm_start_full:

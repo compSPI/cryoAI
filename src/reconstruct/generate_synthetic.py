@@ -1,3 +1,5 @@
+"""Experiment for generating a synthetic dataset from a mrc file."""
+
 from torch.utils.data import DataLoader
 
 from ..dataio import DensityMapProjectionSimulator

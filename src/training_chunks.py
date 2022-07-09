@@ -371,6 +371,7 @@ def eval_to_starfile(model, dataloader, epochs, root_dir, name, config, gpu_only
 
                 conversion_time = time.time()
                 rotmats = model_output['rotmat'].reshape(-1, 3, 3)  # 2B, 3, 3
+                # The two "paths" should be consistent, simply query the first path
                 euler_angles_deg = torch.rad2deg(matrix_to_euler_angles(rotmats, 'ZYZ')).reshape(2, -1, 3)[0]
                 B = euler_angles_deg.shape[0]
                 print("Conversion time: " + str(time.time() - conversion_time))
@@ -395,7 +396,7 @@ def eval_to_starfile(model, dataloader, epochs, root_dir, name, config, gpu_only
                     total_transfer_time += time.time() - to_cpu_time
                     write_time = time.time()
                     for i in range(B):
-                        rlnImageName.append(indices[i])  # change this, replace by the true path to the mrcs
+                        rlnImageName.append(model_input['imgname_raw'][i])
                         rlnDefocusU.append(defocusU[i])
                         rlnDefocusV.append(defocusV[i])
                         rlnDefocusAngle.append(angleAstigmatism[i])

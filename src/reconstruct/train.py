@@ -1,4 +1,4 @@
-"""experiment for training a cryoAI model"""
+"""Experiment for training a cryoAI model."""
 
 from torch.utils.data import DataLoader
 
