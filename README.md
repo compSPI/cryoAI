@@ -6,13 +6,20 @@ This repository is the official implementation of [CryoAI: Amortized Inference o
 
 ## Requirements
 
-To install requirements:
+To install requirements in your current environment:
 
 ```setup
 pip install -r requirements.txt
 ```
 
->📋  Describe how to set up the environment, e.g. pip/conda/docker commands, download datasets, etc...
+However, we recommend the container approach which guarantees more reproducible results over time. 
+We provide methods to build a Docker image from a `Dockerfile` in the `docker/` sub-directory.
+One could also directly "pull" the image from [Dockerhub](https://hub.docker.com/repository/docker/fpoitevi/cryoai):
+```setup
+docker pull fpoitevi/cryoai
+```
+
+For more information, please read [docker/README.md](https://github.com/compSPI/cryoAI/blob/main/docker/README.md).
 
 ## Running a Job
 
