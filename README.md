@@ -68,3 +68,6 @@ A dataset was generated with `configfiles/mrc2star_80S_128.ini` and a cryoAI mod
 ## List of Authors
 
 A. Levy, F. Poitevin, J. Martel, Y. Nashed, A. Peck, N. Miolane, D. Ratner, M. Dunne, G. Wetzstein
+
+[SLAC](https://www6.slac.stanford.edu/)
+[Stanford Computaional Imaging Group](https://www.computationalimaging.org/)
