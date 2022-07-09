@@ -56,9 +56,4 @@ Trained models are saved in a `.pth` format in the `logs/` directory. We give a 
 
 A dataset was generated with `configfiles/mrc2star_80S_128.ini` and a cryoAI model was trained with `configfiles/train_80S_128.ini`.
 
-- Median Square Error on rotations
-![Screen Shot 2022-07-09 at 10 33 41 AM](https://user-images.githubusercontent.com/57400415/178117043-46d1c797-6c79-4904-bb6a-4636c6ce3f85.png)
-- Samples of predicted images
-![imageData-1](https://user-images.githubusercontent.com/57400415/178117050-8c4dfa37-7aa8-4130-8e31-6c4c5692f596.png) ![imageData](https://user-images.githubusercontent.com/57400415/178117054-8c445ca6-c1b2-4d42-9a32-9c9cbdc8e4de.png)
-- Reconstructed volume
-![Screen Shot 2022-07-09 at 10 37 04 AM](https://user-images.githubusercontent.com/57400415/178117057-a5203550-6f1e-4252-9927-fd47712517d3.png)
+![Screen Shot 2022-07-09 at 10 48 27 AM](https://user-images.githubusercontent.com/57400415/178117198-1eedb33a-d373-4295-b4eb-da596bfb26ce.png)
