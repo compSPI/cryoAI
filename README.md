@@ -64,3 +64,7 @@ Trained models are saved in a `.pth` format in the `logs/` directory. We give a 
 A dataset was generated with `configfiles/mrc2star_80S_128.ini` and a cryoAI model was trained with `configfiles/train_80S_128.ini`.
 
 ![Screen Shot 2022-07-09 at 10 48 27 AM](https://user-images.githubusercontent.com/57400415/178117198-1eedb33a-d373-4295-b4eb-da596bfb26ce.png)
+
+## List of Authors
+
+A. Levy, F. Poitevin, J. Martel, Y. Nashed, A. Peck, N. Miolane, D. Ratner, M. Dunne, G. Wetzstein
