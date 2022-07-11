@@ -36,7 +36,7 @@ def experiment(config):
     print("Creating starfile")
     eval_to_starfile(model=model,
                      dataloader=dataloader,
-                     epochs=config.train_epochs,
+                     epochs=1,
                      root_dir=root_dir,
                      name=config.experiment_name,
                      config=config)

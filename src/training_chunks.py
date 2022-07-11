@@ -71,8 +71,9 @@ def split_dict_with_tensors(model_input, max_chunk_sz):
     """
     model_input_chunked = []
     for key in model_input:
-        chunks = torch.split(model_input[key], max_chunk_sz, dim=0)  # split along the batch dimension
-        model_input_chunked.append(chunks)
+        if isinstance(model_input[key], torch.Tensor):
+            chunks = torch.split(model_input[key], max_chunk_sz, dim=0)  # split along the batch dimension
+            model_input_chunked.append(chunks)
 
     list_chunked_model_input = [{k:v for k,v in zip(model_input.keys(), curr_chunks)} \
                                     for curr_chunks in zip(*model_input_chunked)]

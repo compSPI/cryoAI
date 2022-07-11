@@ -39,4 +39,4 @@ echo "Absolute path for container:"
 echo ${CONTAINERPATH}
 
 singularity exec -B /sdf --nv ${CONTAINERPATH} \
-            python -m src.reconstruct.main -c ${RELATVECONFIGPATH} --job_id ${SLURM_JOBID}
+            python -m src.reconstruct.main -c ${RELATVECONFIGPATH}
