@@ -50,7 +50,7 @@ Instructions to download datasets from EMPIAR car be found [here](https://github
 
 ## Training
 
-You must set `experiment_type = train` in the config file and specify the path to your starfile with the `path_to_starfile` argument and the name of the starfile with the `starfile` argument. An (incomplete) example is provided in `configfiles/train_80S_128.ini`. By default, log files containing tensorboard summaries, mrc files (reconstructed volumes) and config files are stored in the `logs/` directory. You can monitor your model with the following command:
+You must set `experiment_type = train` in the config file and specify the path to your starfile with the `path_to_starfile` argument and the name of the starfile with the `starfile` argument. An example is provided in `configfiles/train_80S_128.ini`. By default, log files containing tensorboard summaries, mrc files (reconstructed volumes) and config files are stored in the `logs/` directory. You can monitor your model with the following command:
 ```
 tensorboard --logdir logs --port 8888 --bind_all
 ```
