@@ -65,6 +65,18 @@ A dataset was generated with `configfiles/mrc2star_80S_128.ini` and a cryoAI mod
 
 ![Screen Shot 2022-07-09 at 10 48 27 AM](https://user-images.githubusercontent.com/57400415/178117198-1eedb33a-d373-4295-b4eb-da596bfb26ce.png)
 
+## Citing this work
+
+Please cite this work as
+```
+@article{cryoai,
+  title={Cryoai: Amortized inference of poses for ab initio reconstruction of 3d molecular volumes from real cryo-em images},
+  author={Levy, Axel and Poitevin, Fr{\'e}d{\'e}ric and Martel, Julien and Nashed, Youssef and Peck, Ariana and Miolane, Nina and Ratner, Daniel and Dunne, Mike and Wetzstein, Gordon},
+  journal={arXiv preprint arXiv:2203.08138},
+  year={2022}
+}
+```
+
 ## List of Authors
 
 A. Levy, F. Poitevin, J. Martel, Y. Nashed, A. Peck, N. Miolane, D. Ratner, M. Dunne, G. Wetzstein
