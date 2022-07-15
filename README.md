@@ -35,10 +35,6 @@ If using a shared computational resource managed with slurm, the job can be laun
 ```slurm
 sbatch run_from_config.sh -c RELATVE_PATH_TO_CONFIG_FILE --sif ABSOLUTE_PATH_TO_CONTAINER
 ```
-Finally, if using a docker image you can launch a job with
-```
-...
-```
 
 ## Generating a Synthetic Dataset
 
