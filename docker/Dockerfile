@@ -1,4 +1,4 @@
-FROM fpoitevi/cryonettorch-cmake-base
+FROM fpoitevi/cryoai:latest
 
 WORKDIR /work
 
