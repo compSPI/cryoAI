@@ -1,8 +1,9 @@
-numba
-h5py
-six
-scikit-learn
-pytest
-setuptools
 gdown
+h5py
 jupyterlab
+numba
+pytest
+scikit-learn
+setuptools
+six
+torch-points3d
