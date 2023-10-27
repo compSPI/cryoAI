@@ -6,4 +6,3 @@ pytest
 scikit-learn
 setuptools
 six
-torch-points3d
